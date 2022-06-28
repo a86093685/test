@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块化</title>
+  <style>
+    html {
+      font-size: 50px;
+      color: #222;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 
+    作业 
+      通过闭包实现模块化协作 
+
+      实现三个 模块 A数据模块  B工具模块  C主模块
+
+      A模块内部私有变量为数组 外部只能通过特定方法修改数组 读取数组
+
+      B模块提供数组修改方法 暴露给外部使用
+        1. 原生实现reduce方法
+        2. 原生实现 map 方法
+
+      C模块: 利用模块B提供的方法 操作 模块A内的私有变量数组 
+   -->
+
+  <script>
+    var module_A = (function () {
+      var arr = [];
+      return {
+        set(idx, val) {
+          if (Array.isArray(idx)) {
+            arr = idx;
+            return false;
+          }
+          arr[idx] = val;
+        },
+        get(idx) {
+          if (idx === undefined) {
+            return arr;
+          }
+          if (idx === 'length') {
+            return arr.length;
+          }
+          return arr[idx];
+        }
+      }
+    })();
+
+    var module_B = (function () {
+      var A = module_A;
+      var len = A.get('length');
+      return {
+        map(arr, cb) {
+          if (!(cb instanceof Function)) {
+            return false;
+          }
+
+          var newArr = [];
+          for (var i = 0; i < arr.length; i++) {
+            newArr.push(cb(arr[i], i, arr))
+          }
+          return newArr;
+        },
+        reduce(arr, cb, acc) {
+          if (!(cb instanceof Function)) {
+            return false;
+          }
+
+          var res = acc;
+          for (var i = 0; i < arr.length; i++) {
+            res = cb(res, arr[i], i, arr);
+          }
+          return res;
+        }
+      }
+    })();
+
+    // var module_C = (function () {
+    //   var A = module_A;
+    //   var B = module_B;
+    //   return B.map(function (val, idx, arr) {
+    //     return val * 10;
+    //   }) + B.reduce(function (acc, val, idx, arr) {
+    //     return acc + val
+    //   }, ' ');
+    // })();
+
+
+
+    var module_C = (function () {
+      var B = module_B;
+      return {
+        format: function (arr) {
+          return B.map(arr, function (val, idx, oldarr) {
+            return val * 10;
+          })
+        }
+      }
+    })();
+
+    var c = module_C;
+    console.log(c.format([12, 42, 5, 2, 4]));
+
+  </script>
+
+
+
+
+
+
+
+
+
+  <!-- 
+  <script>
+    // // 垃圾gc回收
+    // function fn(x) {
+    //   let a = 10 + x;
+    //   return a;
+    // }
+    // fn(10) //20
+    // fn(10) //20
+    // // 为什么都是20？ 因为垃圾gc回收 没有变量引用， 不一样的a
+
+    let a;
+    let ss = fn();
+    console.log(ss.get());
+    console.log(ss.set(100));
+    console.log(ss.get());
+
+    let module = (function module() {
+      var num;
+      num = 10;
+      return {
+        get() {
+          return num;
+        },
+        set(param) {
+          num = param
+        }
+      }
+    })();
+
+
+    console.log(module.get())
+
+    module.set(100);
+
+    console.log(module.get())
+
+  </script>
+   -->
+</body>
+
+</html>
